@@ -1,0 +1,15 @@
+[profile.default]
+ffi = true
+ast = true
+build_info = true
+libs = ['lib']
+solc = "0.8.29"
+fs_permissions = [{ access = "read-write", path = "./"}]
+remappings = [
+    'forge-std/=lib/forge-std/src/',
+    '@thirdweb-dev/=node_modules/@thirdweb-dev/',
+    '@openzeppelin/=node_modules/@openzeppelin/',
+    'erc721a-upgradeable/=node_modules/erc721a-upgradeable/'
+]
+[rpc_endpoints]
+pharos = "https://devnet.dplabs-internal.com"
