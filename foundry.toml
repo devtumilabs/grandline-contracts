@@ -4,12 +4,21 @@ ast = true
 build_info = true
 libs = ['lib']
 solc = "0.8.29"
-fs_permissions = [{ access = "read-write", path = "./"}]
+fs_permissions = [{ access = "read-write", path = "./" }]
 remappings = [
     'forge-std/=lib/forge-std/src/',
     '@thirdweb-dev/=node_modules/@thirdweb-dev/',
     '@openzeppelin/=node_modules/@openzeppelin/',
-    'erc721a-upgradeable/=node_modules/erc721a-upgradeable/'
+    'erc721a-upgradeable/=node_modules/erc721a-upgradeable/',
 ]
+optimizer = true
+optimizer_runs = 200 # try 2000–20000
+via_ir = true # IMPORTANT
+bytecode_hash = "none"
+cse = true
+constant_optimization = true
+
 [rpc_endpoints]
-pharos = "https://devnet.dplabs-internal.com"
+pharos-devnet = "https://devnet.dplabs-internal.com"
+pharos-testnet = "https://api.zan.top/node/v1/pharos/testnet/0511efd49b7d435599fb3fb2bebb58b7/"
+pharos-atlantic = "https://atlantic.dplabs-internal.com"

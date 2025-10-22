@@ -129,14 +129,41 @@ contract TumiContractFactoryTest is Test {
 
         address computedProxyAddr = Clones.predictDeterministicAddress(
             address(mockModule),
-            keccak256(abi.encodePacked(proxyDeployer, _salt)),
+            keccak256(abi.encodePacked(actor, _salt)),
             address(_factory)
         );
 
-        vm.prank(proxyDeployer);
+        vm.prank(actor);
         address deployedAddr = _factory.deployProxyByImplementation(address(mockModule), "", _salt);
 
         assertEq(deployedAddr, computedProxyAddr);
         assertEq(mockModule.contractType(), MockContract(computedProxyAddr).contractType());
+    }
+
+    function test_deployProxyByImplementation_twice() public {
+        setUp_deployProxyByImplementation();
+
+        vm.prank(actor);
+        address deployedAddr = _factory.deployProxyByImplementation(address(mockModule), "", bytes32(uint256(0)));
+
+        address computedProxyAddr = Clones.predictDeterministicAddress(
+            address(mockModule),
+            keccak256(abi.encodePacked(actor, bytes32(uint256(0)))),
+            address(_factory)
+        );
+
+       
+
+        vm.prank(actor);
+        address deployedAddr2 = _factory.deployProxyByImplementation(address(mockModule), "", bytes32(uint256(1)));
+
+        address computedProxyAddr2 = Clones.predictDeterministicAddress(
+            address(mockModule),
+            keccak256(abi.encodePacked(actor, bytes32(uint256(1)))),
+            address(_factory)
+        );
+
+        assertEq(deployedAddr, computedProxyAddr);
+        assertEq(deployedAddr2, computedProxyAddr2);
     }
 }

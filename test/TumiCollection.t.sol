@@ -8,11 +8,13 @@ import {TumiRegistry} from "../src/infra/TumiRegistry.sol";
 import {TumiContractFactory} from "../src/infra/TumiContractFactory.sol";
 
 import {TokenERC721} from "@thirdweb-dev/contracts/prebuilts/token/TokenERC721.sol";
+import { DropERC721 } from "@thirdweb-dev/contracts/prebuilts/drop/DropERC721.sol";
 
 contract TumiCollectionTest is Test {
     TumiRegistry _registry;
     TumiContractFactory _factory;
     address internal proxyAddress;
+    address internal proxyDropAddress;
 
     address internal admin;
     address internal user;
@@ -26,11 +28,17 @@ contract TumiCollectionTest is Test {
         _factory = new TumiContractFactory(address(0), address(_registry));
         _registry.grantRole(_registry.OPERATOR_ROLE(), address(_factory));
 
+        _factory.grantRole(_factory.FACTORY_ROLE(), user);
+        _registry.grantRole(_registry.OPERATOR_ROLE(), user);
+
         proxyAddress = address(new TokenERC721());
+        proxyDropAddress = address(new DropERC721());
 
         _factory.addImplementation(proxyAddress);
+        _factory.addImplementation(proxyDropAddress);
 
         _factory.approveImplementation(proxyAddress, true);
+        _factory.approveImplementation(proxyDropAddress, true);
 
         vm.stopPrank();
     }
@@ -46,20 +54,38 @@ contract TumiCollectionTest is Test {
         bytes32 contractType = TokenERC721(proxyAddress).contractType();
         address[] memory trustedForwarders = new address[](1);
         trustedForwarders[0] = address(0);
-        vm.prank(user);
-        address deployedAddr = _factory.deployProxy(contractType, abi.encodeWithSelector(TokenERC721.initialize.selector, user, "NewToken", "NTK", "https://example.com/new-token", trustedForwarders, user, user, 0, 0, user));
+        vm.prank(admin);
+        address deployedAddr = _factory.deployProxy(contractType, abi.encodeWithSelector(TokenERC721.initialize.selector, admin, "NewToken", "NTK", "https://example.com/new-token", trustedForwarders, admin, admin, 0, 0, admin));
 
-        console.logBytes(abi.encodeWithSelector(TokenERC721.initialize.selector, user, "NewToken", "NTK", "https://example.com/new-token", trustedForwarders, user, user, 0, 0, user));
+        console.logBytes(abi.encodeWithSelector(TokenERC721.initialize.selector, admin, "NewToken", "NTK", "https://example.com/new-token", trustedForwarders, admin, admin, 0, 0, admin));
         console.logBytes32(contractType);
 
         console.logAddress(deployedAddr);
-        console.logUint(_registry.count(user));
+        console.logUint(_registry.count(admin));
         console.logString(TokenERC721(deployedAddr).name());
 
         bytes32 adminRole = TokenERC721(deployedAddr).DEFAULT_ADMIN_ROLE();
 
-        assertEq(TokenERC721(deployedAddr).hasRole(adminRole, user), true);
+        assertEq(TokenERC721(deployedAddr).hasRole(adminRole, admin), true);
 
         assertEq(TokenERC721(deployedAddr).name(), "NewToken");
+    }
+
+    function test_deployDropProxyByImplementation() public {
+        bytes32 contractType = DropERC721(proxyDropAddress).contractType();
+        address[] memory trustedForwarders = new address[](1);
+        trustedForwarders[0] = address(0);
+        vm.prank(user);
+        address deployedAddr = _factory.deployProxy(contractType, abi.encodeWithSelector(DropERC721.initialize.selector, user, "NewDrop", "NDP", "https://example.com/new-drop", trustedForwarders, user, user, 0, 0, user));
+
+        console.logAddress(deployedAddr);
+        console.logUint(_registry.count(user));
+        console.logString(DropERC721(deployedAddr).name());
+
+        bytes32 adminRole = DropERC721(deployedAddr).DEFAULT_ADMIN_ROLE();
+
+        assertEq(DropERC721(deployedAddr).hasRole(adminRole, user), true);
+
+        assertEq(DropERC721(deployedAddr).name(), "NewDrop");
     }
 }
